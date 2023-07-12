@@ -1,0 +1,20 @@
+# Group 2 Makefile
+
+_GROUP2_MAKEFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+include $(_GROUP2_MAKEFILE_DIR)/../makefile.base
+
+# Marker file indicating group2 dependencies have been installed in the local virtual environment
+GROUP2_VENV_MARKER := $(VENV)/.group2_initialized
+
+# Common requirements
+REQUIREMENTS_G2 := $(subst //,/,$(_GROUP2_MAKEFILE_DIR)/requirements.group2)
+
+### --- Group2 Virtual Environment Extensions ---
+$(GROUP2_VENV_MARKER): $(VENV_MARKER) $(REQUIREMENTS_G2)
+	@if [[ -f $(GROUP2_VENV_MARKER) ]]; then rm -f $(GROUP2_VENV_MARKER); fi
+	@echo "Installing common package dependencies"
+	@$(VENV_ACTIVATE) && pip --quiet install -r $(REQUIREMENTS_G2)
+	@touch $(GROUP2_VENV_MARKER)
+
+.PHONY: venv
+venv: | $(GROUP2_VENV_MARKER)

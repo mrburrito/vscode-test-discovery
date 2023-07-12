@@ -1,0 +1,5 @@
+{
+    // disable pytest for the root_project so vscode doesn't try to
+    // discover tests at the top level, leading to a failure
+    "python.testing.pytestEnabled": false
+}

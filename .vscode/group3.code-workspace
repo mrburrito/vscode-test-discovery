@@ -1,0 +1,137 @@
+{
+  "folders": [
+    {
+      "name": "root_project",
+      "path": "../"
+    },
+    {
+      "name": "group3 :: group3_p1",
+      "path": "../group3/group3_p1/"
+    },
+    {
+      "name": "group3 :: group3_p2",
+      "path": "../group3/group3_p2/"
+    },
+    {
+      "name": "group3 :: group3_p3",
+      "path": "../group3/group3_p3/"
+    },
+    {
+      "name": "group3 :: group3_p4",
+      "path": "../group3/group3_p4/"
+    },
+    {
+      "name": "group3 :: group3_p5",
+      "path": "../group3/group3_p5/"
+    },
+    {
+      "name": "group3 :: group3_p6",
+      "path": "../group3/group3_p6/"
+    }
+  ],
+  "settings": {
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "editor.formatOnSave": true,
+    "editor.renderWhitespace": "all",
+    "editor.trimAutoWhitespace": true,
+    "files.associations": {
+      "Makefile.*": "makefile",
+      "makefile.*": "makefile"
+    },
+    "files.exclude": {
+      ".pytest_cache/": true,
+      ".venv/": true,
+      "__pycache__/": true,
+      "build/": true,
+      "dist/": true
+    },
+    "files.insertFinalNewline": true,
+    "files.watcherExclude": {
+      "**/..pytest_cache/": true,
+      "**/.venv/": true,
+      "**/__pycache__": true,
+      "**/build/": true,
+      "**/dist/": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.formatting.provider": "none",
+    "python.linting.flake8Args": [
+      "--ignore=E501,W503",
+      "--extend-exclude=.venv,.pytest_cache"
+    ],
+    "python.linting.flake8Enabled": true,
+    "python.testing.pytestArgs": [],
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "yaml.customTags": [
+      "!And scalar",
+      "!And mapping",
+      "!And sequence",
+      "!If scalar",
+      "!If mapping",
+      "!If sequence",
+      "!Not scalar",
+      "!Not mapping",
+      "!Not sequence",
+      "!Equals scalar",
+      "!Equals mapping",
+      "!Equals sequence",
+      "!Or scalar",
+      "!Or mapping",
+      "!Or sequence",
+      "!FindInMap scalar",
+      "!FindInMap mappping",
+      "!FindInMap sequence",
+      "!Base64 scalar",
+      "!Base64 mapping",
+      "!Base64 sequence",
+      "!Cidr scalar",
+      "!Cidr mapping",
+      "!Cidr sequence",
+      "!Ref scalar",
+      "!Ref mapping",
+      "!Ref sequence",
+      "!Sub scalar",
+      "!Sub mapping",
+      "!Sub sequence",
+      "!GetAtt scalar",
+      "!GetAtt mapping",
+      "!GetAtt sequence",
+      "!GetAZs scalar",
+      "!GetAZs mapping",
+      "!GetAZs sequence",
+      "!ImportValue scalar",
+      "!ImportValue mapping",
+      "!ImportValue sequence",
+      "!Select scalar",
+      "!Select mapping",
+      "!Select sequence",
+      "!Split scalar",
+      "!Split mapping",
+      "!Split sequence",
+      "!Join scalar",
+      "!Join mapping",
+      "!Join sequence",
+      "!And",
+      "!If",
+      "!Not",
+      "!Equals",
+      "!Or",
+      "!FindInMap",
+      "!Base64",
+      "!Join",
+      "!Cidr",
+      "!Ref",
+      "!Sub",
+      "!GetAtt",
+      "!GetAZs",
+      "!ImportValue",
+      "!Select",
+      "!Split"
+    ],
+    "yaml.format.enable": true,
+    "yaml.validate": true
+  }
+}

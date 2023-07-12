@@ -1,0 +1,18 @@
+# Makefile - No Python
+#
+# This Makefile should be used by any projects that contain no python.
+# It overrides the python-specific targets so we don't waste
+# cycles on unnecessary actions.
+
+_NOPY_MAKEFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+include $(_NOPY_MAKEFILE_DIR)/../makefile.base
+
+MESSAGE_PREFIX := No Python:
+
+.PHONY: test
+test:
+	@echo $(MESSAGE_PREFIX) No unit tests
+
+.PHONY: venv
+venv:
+	@echo $(MESSAGE_PREFIX) No virtual environment required

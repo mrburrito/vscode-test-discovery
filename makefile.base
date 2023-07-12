@@ -1,0 +1,151 @@
+# Base Makefile
+
+# BASE_DIR is the full path of this file
+BASE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+
+# MAKEFILE_DIR is the full path of the Makefile that included this file
+MAKEFILE_DIR := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+
+# CWD is the relative directory of the Makefile that included this file
+CWD := $(patsubst %/,%,$(subst $(BASE_DIR)/,,$(MAKEFILE_DIR)/))
+
+# Current time in seconds from epoch
+NOW := $(shell date +%s)
+
+# SCRIPTS_DIR is the full path to the build helper scripts
+SCRIPTS_DIR := $(subst //,/,$(BASE_DIR)/.scripts)
+
+# Tool directories and files
+PYCACHE_DIR := __pycache__
+VENV_DIR := .venv
+PYTEST_CACHE_DIR := .pytest_cache
+
+# Python Major.Minor version (e.g. 3.9)
+PYTHON_VERSION_FILE := $(shell if [[ -f $(MAKEFILE_DIR)/.python_version ]]; then echo $(MAKEFILE_DIR)/.python-version; else echo $(BASE_DIR)/.python-version; fi)
+PYTHON_VERSION := $(shell cat $(PYTHON_VERSION_FILE) | cut -f 1,2 -d '.')
+
+### --- Shared Root Virtual Environment Configuration ---
+
+# Path to the root virtual environment
+ROOT_VENV := $(BASE_DIR)/$(VENV_DIR)
+# Command to activate the root virtual environment
+ROOT_VENV_ACTIVATE := . $(ROOT_VENV)/bin/activate
+# Marker file indicating root virtual environment has been initialized
+ROOT_VENV_MARKER := $(ROOT_VENV)/.venv_initialized
+# Root virtual environment site-packages
+ROOT_VENV_SITE_PACKAGES := $(ROOT_VENV)/lib/python$(PYTHON_VERSION)/site-packages
+
+### --- Local Python Virtual Environment Configuration ---
+
+# Path to the local virtual environment
+VENV := $(MAKEFILE_DIR)/$(VENV_DIR)
+# Command to activate the local virtual environment
+VENV_ACTIVATE := . $(VENV)/bin/activate
+# Marker file indicating local virtual environment has been initialized
+VENV_MARKER := $(VENV)/.venv_initialized
+# Local virtual environment site-packages
+VENV_SITE_PACKAGES := $(VENV)/lib/python$(PYTHON_VERSION)/site-packages
+
+# Common development requirements
+REQUIREMENTS_DEV := $(BASE_DIR)/requirements.dev
+
+FIND_PATH_FILTER := \! \( \
+	-path '*/$(VENV_DIR)/*' \
+	-or -path '*/$(PYCACHE_DIR)/*' \
+\)
+
+# All requirements.txt files relative to current directory
+REQUIREMENTS_FILES := $(shell find . $(FIND_PATH_FILTER) -name requirements.txt)
+
+# All packages found in requirements.txt files (only when not a root build)
+ifndef ROOT_BUILD
+ifdef REQUIREMENTS_FILES
+REQUIREMENTS_PACKAGES := $(shell cat $(REQUIREMENTS_FILES) | sort | uniq | grep -v "\#")
+endif
+endif
+
+### --- Virtual Environment Management ---
+
+$(ROOT_VENV_MARKER): $(REQUIREMENTS_DEV)
+	@echo "Creating root venv [$(ROOT_VENV)]"
+	@if [[ -f $(ROOT_VENV_MARKER) ]]; then rm -f $(ROOT_VENV_MARKER); fi
+	@python3 -m venv --upgrade-deps $(ROOT_VENV) > /dev/null
+	@echo "Installing dev dependencies from [$(REQUIREMENTS_DEV)]"
+	@$(ROOT_VENV_ACTIVATE) && pip --quiet install -r $(REQUIREMENTS_DEV)
+	@touch $(ROOT_VENV_MARKER)
+
+.PHONY: root-venv-default
+root-venv-default: $(ROOT_VENV_MARKER)
+
+.PHONY: venv-default
+ifdef ROOT_BUILD
+# Define venv target as alias for root-venv if this is a ROOT_BUILD
+venv-default: $(ROOT_VENV_MARKER)
+else
+# Define venv target for local venv when this is not a ROOT_BUILD
+$(VENV_MARKER): $(ROOT_VENV_MARKER) $(REQUIREMENTS_FILES)
+	@echo "Creating local venv [$(VENV)]"
+	@if [[ -f $(VENV_MARKER) ]]; then rm -f $(VENV_MARKER); fi
+	@python3 -m venv --upgrade-deps $(VENV) > /dev/null
+#	# Link venv to root shared dependencies
+	@echo "$(ROOT_VENV_SITE_PACKAGES)" > $(VENV_SITE_PACKAGES)/shared.pth
+#	# Ensure shared binaries are on the path after the local virtual environment
+	@sed -i -e 's|PATH="$$VIRTUAL_ENV/bin:|&$(ROOT_VENV)/bin:|' $(VENV)/bin/activate
+ifdef REQUIREMENTS_PACKAGES
+	@echo "Installing dependencies from [$(REQUIREMENTS_FILES)]"
+	@$(VENV_ACTIVATE) && pip --quiet install $(addprefix ",$(addsuffix ",$(REQUIREMENTS_PACKAGES)))
+endif
+	@touch $(VENV_MARKER)
+
+venv-default: | $(VENV_MARKER)
+endif
+
+### --- Python Test and Build ---
+
+.PHONY: clean-default
+clean-default:
+	find . $(FIND_PATH_FILTER) -and \( \
+		-type d -and \( \
+			-name .venv \
+			-or -name $(PYCACHE_DIR) \
+			-or -name $(PYTEST_CACHE_DIR) \
+			-or -name *.egg-info \
+		\) \
+	\) -exec rm -rf {} +
+
+ifndef ROOT_BUILD
+TEST_FILES := $(shell find . $(FIND_PATH_FILTER) -and \( -type f -name "test_*.py" \))
+endif
+
+.PHONY: test-default
+test-default: venv
+ifdef TEST_FILES
+	$(VENV_ACTIVATE) && python -m pytest -vv
+else
+	@echo "No Python tests found in $(CWD)"
+endif
+
+### --- Makefile Magic ---
+
+# % / %-default is a trick for providing default commands without technically overriding commands
+# in order to prevent Makefile from warning about this when it is intended behavior
+# See https://stackoverflow.com/a/49804748
+%: %-default
+	@ true
+
+# Any target with this dependency is forced to run
+.PHONY: FORCE
+FORCE:
+
+# Define the .WAIT target that was added in Make 4.4. This allows make versions
+# that don't support .WAIT to build while enabling the parallelization control
+# that .WAIT provides (execute all dependencies to the left, wait for completion,
+# then execute all dependencies to the right) in supported versions.
+#
+# Example usage:
+# parallel-job: prereq1 prereq2 .WAIT task1 task2 task3
+#
+# If running multi-threaded, prereq1 and prereq2 will run in parallel and, once
+# complete, task1, task2, and task3 will be started in parallel.
+.PHONY: .WAIT
+.WAIT:
