@@ -79,14 +79,15 @@
       "**/build/": true,
       "**/dist/": true
     },
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.formatting.provider": "none",
-    "python.linting.flake8Args": [
+    "flake8.args": [
       "--ignore=E501,W503",
-      "--extend-exclude=.venv,.pytest_cache"
+      "--extend-exclude=.venv,.aws-sam,.pytest_cache"
     ],
-    "python.linting.flake8Enabled": true,
-    "python.testing.pytestArgs": [],
+    "python.createEnvironment.trigger": "off",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.testing.pytestArgs": [
+      "--color=yes"
+    ],
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "yaml.customTags": [
